@@ -1,0 +1,35 @@
+- hosts: webserver
+  vars:
+    - port: "80"
+    - doc: "/var/www/html"
+
+  tasks:
+  - name: Install httpd
+    package:
+      name: "httpd"
+      state: present
+
+  - name: create webpages
+    copy:
+      src: "/ws2/web.php"
+      dest: "/var/www/html"
+
+  - name: change config file
+    template:
+      dest: "/etc/httpd/conf.d/lw.conf.j2"
+      src: "/ws2/lw.conf.j2"
+    notify: web service
+
+  - name: allow port
+    firewalld:
+      port: "80/tcp"
+      immediate: yes
+      permanent: yes
+      state: enabled
+
+  handlers:
+  - name: web service
+    service:
+      name: "httpd"
+      state: restarted
+
